@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter.ttk import Progressbar, Treeview
 from tkinter import ttk, messagebox, filedialog
 from tkinter import font as tkFont
+from ttkthemes import ThemedTk
 import pandas as pd
 import xerox
 import csv
@@ -43,6 +44,7 @@ def sup(char):
             charfailcount += 1
             return '&'
             
+
 def sub(char):
     char = str(char)
     match char:
@@ -89,7 +91,7 @@ def importMinerals():
         mineralelements_list = []
 
         for row in f:
-            print(row)
+            #print(row)
             mineralname = row[0]
             mineralnameplain = row[1]
             plainformula = row[2]
@@ -132,27 +134,31 @@ def importMinerals():
 
                 processedformula += char
             
-            print(f'Processed Formula: {processedformula}')
+            #print(f'Processed Formula: {processedformula}')
 
             elementslist = elements.split(' ')
-            elementsregex = re.compile('[^a-zA-Z]')
-            elementscleanlist = []
-            for e in elementslist:
-                cleaned = elementsregex.sub('', e)
-                elementscleanlist.append(cleaned)
+            # elementsregex = re.compile('[^a-zA-Z]')
+            # elementscleanlist = []
+            # for e in elementslist:
+            #     cleaned = elementsregex.sub('', e)
+            #     elementscleanlist.append(cleaned)
             
             mineralnames_list.append(mineralname)
             mineralformulas_list.append(processedformula)
-            mineralelements_list.append(elementscleanlist)
+            mineralelements_list.append(elementslist)
 
 
-            addMineralToTable(mineralname, processedformula, elementscleanlist)
+            #addMineralToTable(mineralname, processedformula, elementslist)
             
 
             #if charfailcount >= 1: time.sleep(2)
     global mineral_dataframe
     mineral_dataframe = pd.DataFrame({'Name':mineralnames_list, 'Formula':mineralformulas_list, 'Elements':mineralelements_list})
-    print(mineral_dataframe)
+    #print(mineral_dataframe)
+    global mineralCount
+    mineralCount = len(mineral_dataframe)
+    for index, row in mineral_dataframe.iterrows():
+            tables[0].insert(parent='', index=END, text='', values=list(row))
 
     print(f'Error counts: {superrorcount} sup errors, {suberrorcount} sub errors ')
 
@@ -347,14 +353,15 @@ def toggleElement(Z):
 
 def filterMineralTable():
     global active_filter_elements
+    i = 0
     for item in tables[0].get_children():
       tables[0].delete(item)
     for index, row in mineral_dataframe.iterrows():
         if all(elem in row['Elements'] for elem in active_filter_elements):     # check if all active filter elements are in the mineral
             tables[0].insert(parent='', index=END, text='', values=list(row))
-
-
-
+            i+=1
+    mineralTableStatus.set(f'Minerals: {i}/{mineralCount} ')
+    mineralTableFrames[0].configure(text = mineralTableStatus.get())
 
 
 def clearElements():
@@ -368,9 +375,30 @@ def clearElements():
     filterMineralTable()
 
 
+def mineralSelected(event):
+    selection = tables[0].item(tables[0].selection())
+    global selected_formula
+    global selected_name
+    selected_formula = selection['values'][1]
+    selected_name = selection['values'][0]
+    print(selected_formula)
+    xerox.copy(selected_formula)
+
+def clickCopyFormula():
+    xerox.copy(selected_formula)
+
+def clickCopyName():
+    xerox.copy(selected_name)
+
+
+gui = Tk()
+mineralTableStatus = StringVar()
+mineralCount = 0
+mineralTableFrames = []
+
+
 
 def main():
-    gui = Tk()
     gui.title("Mineral Database")
     #gui.wm_attributes('-toolwindow', 'True',)
     gui.geometry('+5+5')
@@ -392,10 +420,10 @@ def main():
     consolas09 = tkFont.Font(family='Consolas', size=9)
     consolas08 = tkFont.Font(family='Consolas', size=8)
 
-    # Style definition for treeview
-    tableStyle = ttk.Style()
-    tableStyle.configure("mystyle.Treeview", highlightthickness=0, bd=0, font= consolas10)        # Modify the font of the body
-    tableStyle.configure("mystyle.Treeview.Heading", font = consolas10B)                                    # Modify the font of the headings)
+    # Style definition for treeview and buttons
+    guiStyle = ttk.Style()
+    guiStyle.configure('mystyle.Treeview', highlightthickness=0, bd=0, font= consolas10)        # Modify the font of the body
+    guiStyle.configure('mystyle.Treeview.Heading', font = consolas10B)                                    # Modify the font of the headings)
     
     # ptable Frame
     ptableFrame = LabelFrame(gui, width = 200, height = 10, pady = 5, padx = 5, fg = "#545454", font = consolas10, text = "Select Elements")
@@ -424,14 +452,16 @@ def main():
 
 
     #mineralTable Frame
-    mineralTableFrame = LabelFrame(gui, width = 200, height = 10, pady = 5, padx = 5, fg = "#545454", font = consolas10, text = "Mineral Table")
+    mineralTableStatus.set('Minerals')
+    mineralTableFrame = LabelFrame(gui, width = 200, height = 10, pady = 5, padx = 5, fg = "#545454", font = consolas10, text = mineralTableStatus.get())
     mineralTableFrame.grid(row=2, column=1, columnspan=1, pady = 5, padx = 5, sticky= NSEW)
-
+    global mineralTableFrames
+    mineralTableFrames.append(mineralTableFrame)
 
     mineralColumns = ('t_name', 't_formula', 't_elements')
     mineralTable = Treeview(mineralTableFrame, columns = mineralColumns, height = "20", selectmode = "extended", style = 'mystyle.Treeview', show = 'headings')
     tables.append(mineralTable)
-    mineralTable.grid(column=1, row=1, padx=5, pady=5, rowspan = 40, columnspan = 20, sticky = NSEW)
+    mineralTable.grid(column=1, row=1, padx=0, pady=0, rowspan = 40, columnspan = 20, sticky = NSEW)
 
     mineralTable.heading('t_name', text = "Mineral Name", anchor = W)                  
     mineralTable.heading('t_formula', text = "Formula", anchor = W)                 
@@ -441,14 +471,25 @@ def main():
     mineralTable.column('t_formula', minwidth = 50, width = 500, anchor = W)
     mineralTable.column('t_elements', minwidth = 50, width = 150, anchor = W)
 
+    mineralTableScrollbar = Scrollbar(mineralTableFrame, orient=VERTICAL, bg = 'red', command=mineralTable.yview)
+    mineralTableScrollbar.grid(column=21, row=1, rowspan = 40, padx=0, pady=0, sticky = NS)
+    mineralTable.configure(yscroll=mineralTableScrollbar.set)
+
+    mineralTable.bind('<<TreeviewSelect>>', mineralSelected)
+
+    copyFormula = Button(mineralTableFrame, width = 8, text = "Copy Formula", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=clickCopyFormula)
+    copyFormula.grid(column=2, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
+
+    copyName = Button(mineralTableFrame, width = 4, text = "Copy Name", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=clickCopyName)
+    copyName.grid(column=1, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
 
     # formulas = ['PbS','C\u2076\u2082','PbCu']
     # formula = 'C\u2076\u2082'
     # xerox.copy(formulas[1])
 
     importMinerals()
-
-
+    mineralTableStatus.set(f'Minerals: {mineralCount}/{mineralCount} ')
+    mineralTableFrames[0].configure(text = mineralTableStatus.get())
 
     gui.mainloop()
 

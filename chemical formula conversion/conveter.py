@@ -1,3 +1,12 @@
+
+# this script is supposed to take a CSV file export from the RRUFF database (https://rruff.info/ima/), and convert it to a format usable by mineralperiodictable.
+# the downloaded CSV file should have the following export options (columns):
+# Mineral Name (plain)
+# IMA Chemistry (concise)
+# Valence Elements
+
+
+
 import csv
 import time
 
@@ -117,6 +126,8 @@ with open('minerals.csv', encoding='utf-8') as file:
             processedformula += char
         
         print(f'Processed Formula: {processedformula}')
+
+        
 
         if charfailcount >= 1: time.sleep(2)
 
