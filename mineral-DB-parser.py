@@ -1,15 +1,16 @@
-
+# Mineral Parser Periodic Table by ZH
+versionNum = 'v1.0.1'
+versionDate = '2022/12/12'
 
 from tkinter import *
-from tkinter.ttk import Progressbar, Treeview
-from tkinter import ttk, messagebox, filedialog
+from tkinter.ttk import Treeview
+from tkinter import ttk
 from tkinter import font as tkFont
-from ttkthemes import ThemedTk
 import pandas as pd
 import xerox
 import csv
-import time
-import re
+import os
+import sys
 
 
 
@@ -162,6 +163,11 @@ def importMinerals():
 
     print(f'Error counts: {superrorcount} sup errors, {suberrorcount} sub errors ')
 
+
+def resource_path(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
 
 
 # COLOURS FOR ELEMENT GROUPS
@@ -356,13 +362,22 @@ def filterMineralTable():
     i = 0
     for item in tables[0].get_children():
       tables[0].delete(item)
-    for index, row in mineral_dataframe.iterrows():
-        if all(elem in row['Elements'] for elem in active_filter_elements):     # check if all active filter elements are in the mineral
-            tables[0].insert(parent='', index=END, text='', values=list(row))
-            i+=1
-    mineralTableStatus.set(f'Minerals: {i}/{mineralCount} ')
-    mineralTableFrames[0].configure(text = mineralTableStatus.get())
 
+    if exclusivemode.get() == False:
+        for index, row in mineral_dataframe.iterrows():
+            if all(elem in row['Elements'] for elem in active_filter_elements):     # check if all active filter elements are in the mineral
+                tables[0].insert(parent='', index=END, text='', values=list(row))
+                i+=1
+        mineralTableStatus.set(f'Minerals: {i}/{mineralCount} ')
+        mineralTableFrames[0].configure(text = mineralTableStatus.get())
+    
+    elif exclusivemode.get() == True:
+        for index, row in mineral_dataframe.iterrows():
+            if all(elem in active_filter_elements for elem in row['Elements']):     # check if all mineral elements are in the active filter elements
+                tables[0].insert(parent='', index=END, text='', values=list(row))
+                i+=1
+        mineralTableStatus.set(f'Minerals: {i}/{mineralCount} ')
+        mineralTableFrames[0].configure(text = mineralTableStatus.get())
 
 def clearElements():
     global active_filter_elements
@@ -390,12 +405,31 @@ def clickCopyFormula():
 def clickCopyName():
     xerox.copy(selected_name)
 
+def toggleExclusiveMode():
+    if exclusivemode.get() == True:
+        exclusivemode.set(False)
+        exclusivemode_text.set('EXCLUSIVE(N)')
+        exclmodebuttons[0].configure(bg='#D42525')
+    elif exclusivemode.get() == False:
+        exclusivemode.set(True)
+        exclusivemode_text.set('EXCLUSIVE(Y)')
+        exclmodebuttons[0].configure(bg='#33AF56')
+    filterMineralTable()
+
+
+
+
+
 
 gui = Tk()
 mineralTableStatus = StringVar()
 mineralCount = 0
 mineralTableFrames = []
-
+exclmodebuttons = []
+exclusivemode = BooleanVar()
+exclusivemode.set(False)
+exclusivemode_text = StringVar()
+exclusivemode_text.set('EXCLUSIVE(N)')
 
 
 def main():
@@ -431,6 +465,7 @@ def main():
 
     # ptable Buttons
     global buttonIDs
+    global exclmodebuttons
     buttonIDs = []
     for e in element_info:
         button = Button(ptableFrame, text=(str(e[0])+'\n'+e[1]), width=5, height=2, bg=e[5], font=consolas10, command=lambda Z=int(e[0]): toggleElement(Z))
@@ -439,6 +474,12 @@ def main():
 
     clear_button = Button(ptableFrame, text='CLEAR ALL', width=5, height=2, bg='white', font=consolas10, command=clearElements)
     clear_button.grid(row=10, column=1, padx=1, pady=1, ipadx=0, ipady=0, columnspan=2, sticky=NSEW)
+
+
+    exclusivemode_select = Button(ptableFrame, textvariable=exclusivemode_text, width=5, height=2, bg='#D42525', fg = 'white', font=consolas10, command=toggleExclusiveMode)
+    exclusivemode_select.grid(row=9, column=1, padx=1, pady=1, ipadx=0, ipady=0, columnspan=2, sticky=NSEW)
+    exclmodebuttons.append(exclusivemode_select)
+
 
 
     # # mineral Frame
