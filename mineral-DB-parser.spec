@@ -2,7 +2,7 @@
 
 
 addedfiles = [
-    ("pss.ico",".")
+    ("minerals.csv",".")
 ]
 
 block_cipher = None

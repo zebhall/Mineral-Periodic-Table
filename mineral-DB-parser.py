@@ -1,6 +1,6 @@
 # Mineral Parser Periodic Table by ZH
-versionNum = 'v1.0.1'
-versionDate = '2022/12/12'
+versionNum = 'v1.0.2'
+versionDate = '2022/12/17'
 
 from tkinter import *
 from tkinter.ttk import Treeview
@@ -11,6 +11,12 @@ import xerox
 import csv
 import os
 import sys
+import webbrowser
+
+####
+import requests
+from bs4 import BeautifulSoup
+####
 
 
 
@@ -18,7 +24,7 @@ superrorcount = 0
 suberrorcount = 0
 tables = []
 
-def sup(char):
+def toUnicode_sup(char):
     char = str(char)
     match char:
         case '0': return '\u2070' 
@@ -46,7 +52,7 @@ def sup(char):
             return '&'
             
 
-def sub(char):
+def toUnicode_sub(char):
     char = str(char)
     match char:
         case '0': return '\u2080' 
@@ -82,21 +88,39 @@ def sub(char):
             charfailcount += 1
             return '&'
 
+
+
 def importMinerals():
-    with open('minerals.csv', encoding='utf-8') as file:
+    global mineralcsv
+    with open(mineralcsv, encoding='utf-8') as file:
         f = csv.reader(file)
         headers = next(f)
 
+        # Get indexes of column headers for columns of interest, in case they aren't in expected indexes
+        mineralname_columnindex = headers.index('Mineral Name')
+        mineralnameplain_columnindex = headers.index('Mineral Name (plain)')
+        plainformula_columnindex = headers.index('IMA Chemistry (concise)')
+        elements_columnindex = headers.index('Chemistry Elements')
+
+        
+        global mineralnames_list
         mineralnames_list = []
         mineralformulas_list = []
         mineralelements_list = []
 
+
+
         for row in f:
-            #print(row)
-            mineralname = row[0]
-            mineralnameplain = row[1]
-            plainformula = row[2]
-            elements = row[3]
+
+            # mineralname = row[0]
+            # mineralnameplain = row[1]
+            # plainformula = row[2]
+            # elements = row[3]
+
+            mineralname = row[mineralname_columnindex]
+            mineralnameplain = row[mineralnameplain_columnindex]
+            plainformula = row[plainformula_columnindex]
+            elements = row[elements_columnindex]
 
             currently_sup = False
             currently_sub = False
@@ -122,11 +146,11 @@ def importMinerals():
                     break
 
                 if currently_sub:
-                    processedformula += sub(char)
+                    processedformula += toUnicode_sub(char)
                     continue
                 
                 if currently_sup:
-                    processedformula += sup(char)
+                    processedformula += toUnicode_sup(char)
                     continue
 
                 if char == 'z':
@@ -143,6 +167,7 @@ def importMinerals():
             # for e in elementslist:
             #     cleaned = elementsregex.sub('', e)
             #     elementscleanlist.append(cleaned)
+            
             
             mineralnames_list.append(mineralname)
             mineralformulas_list.append(processedformula)
@@ -394,16 +419,28 @@ def mineralSelected(event):
     selection = tables[0].item(tables[0].selection())
     global selected_formula
     global selected_name
-    selected_formula = selection['values'][1]
-    selected_name = selection['values'][0]
+    try:
+        selected_formula = selection['values'][1]
+        selected_name = selection['values'][0]
+    except:
+        selected_formula = 'NULL FORMULA'
+        selected_name = 'NULL NAME'
     print(selected_formula)
     xerox.copy(selected_formula)
 
-def clickCopyFormula():
+def click_CopyFormula():
     xerox.copy(selected_formula)
 
-def clickCopyName():
+def click_CopyName():
     xerox.copy(selected_name)
+
+def click_GoogleName():
+    urlstr = f'https://google.com/search?q={selected_name}'
+    webbrowser.open(urlstr)
+
+def click_MindatName():
+    urlstr = f'https://www.mindat.org/search.php?search={selected_name}'
+    webbrowser.open(urlstr)
 
 def toggleExclusiveMode():
     if exclusivemode.get() == True:
@@ -439,6 +476,8 @@ def main():
     #iconpath = resource_path("pss.ico")
     #gui.iconbitmap(iconpath)
     #gui.configure(bg = "#F8F9F9")
+    global mineralcsv
+    mineralcsv = resource_path('minerals.csv')
 
     # Fonts
     consolas24 = tkFont.Font(family='Consolas', size=24)
@@ -457,7 +496,7 @@ def main():
     # Style definition for treeview and buttons
     guiStyle = ttk.Style()
     guiStyle.configure('mystyle.Treeview', highlightthickness=0, bd=0, font= consolas10)        # Modify the font of the body
-    guiStyle.configure('mystyle.Treeview.Heading', font = consolas10B)                                    # Modify the font of the headings)
+    guiStyle.configure('mystyle.Treeview.Heading', font = consolas10B)                          # Modify the font of the headings)
     
     # ptable Frame
     ptableFrame = LabelFrame(gui, width = 200, height = 10, pady = 5, padx = 5, fg = "#545454", font = consolas10, text = "Select Elements")
@@ -518,17 +557,40 @@ def main():
 
     mineralTable.bind('<<TreeviewSelect>>', mineralSelected)
 
-    copyFormula = Button(mineralTableFrame, width = 8, text = "Copy Formula", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=clickCopyFormula)
-    copyFormula.grid(column=2, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
+    copyName_button = Button(mineralTableFrame, width = 4, text = "Copy Name", font = consolas10, fg = "#FDFEFE", bg = "#506f8c", command=click_CopyName)
+    copyName_button.grid(column=1, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
 
-    copyName = Button(mineralTableFrame, width = 4, text = "Copy Name", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=clickCopyName)
-    copyName.grid(column=1, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
+    copyFormula_button = Button(mineralTableFrame, width = 8, text = "Copy Formula", font = consolas10, fg = "#FDFEFE", bg = "#506f8c", command=click_CopyFormula)
+    copyFormula_button.grid(column=2, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
+
+    googleName_button = Button(mineralTableFrame, width = 3, text = "MinDat", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=click_MindatName)
+    googleName_button.grid(column=3, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
+
+    googleName_button = Button(mineralTableFrame, width = 3, text = "Google", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=click_GoogleName)
+    googleName_button.grid(column=4, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
 
     # formulas = ['PbS','C\u2076\u2082','PbCu']
     # formula = 'C\u2076\u2082'
     # xerox.copy(formulas[1])
 
     importMinerals()
+
+    ####
+    with open('names.txt', 'a') as f:
+        for mineral in mineralnames_list:
+            urlstr = f'https://www.mindat.org/search.php?search={mineral}'
+            page = requests.get(urlstr)
+            soup = BeautifulSoup(page.content, 'html.parser')
+            introdata = soup.find(id='textContent')
+            print(introdata)
+
+    
+
+
+
+    ####
+
+
     mineralTableStatus.set(f'Minerals: {mineralCount}/{mineralCount} ')
     mineralTableFrames[0].configure(text = mineralTableStatus.get())
 
