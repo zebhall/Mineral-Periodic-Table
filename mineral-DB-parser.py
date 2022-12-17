@@ -576,13 +576,14 @@ def main():
     importMinerals()
 
     ####
-    with open('names.txt', 'a') as f:
-        for mineral in mineralnames_list:
-            urlstr = f'https://www.mindat.org/search.php?search={mineral}'
-            page = requests.get(urlstr)
-            soup = BeautifulSoup(page.content, 'html.parser')
-            introdata = soup.find(id='textContent')
-            print(introdata)
+    # with open('names.txt', 'a') as f:
+    #     for mineral in mineralnames_list:
+    #         urlstr = f'https://www.mindat.org/search.php?search={mineralnames_list[1]}'
+    #         page = requests.get(urlstr)
+    #         soup = BeautifulSoup(page.content, 'html.parser')
+    #         print(soup.body)
+    #         introdata = soup.find(id='textContent')
+    #         print(introdata)
 
     
 
