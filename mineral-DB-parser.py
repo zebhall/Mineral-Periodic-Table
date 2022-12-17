@@ -577,9 +577,12 @@ def main():
 
     ####
     # with open('names.txt', 'a') as f:
+    #     s = requests.Session()
+    #     s.headers['user-agent'] = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36'
+    #     s.headers['cookie'] = 'cookieconsent_status=dismiss; mindat=grn2eukpa005i7ac1pue4bi4i3; __cf_bm=zTydYI2CMmD.BjjCUq3wcFnsR_.NonADxwckor68O40-1671292142-0-AaR3ZB9/fx8fM8C21tJSkmKqUXg579oHXPyOPRVzJUFV7Q0i5ESL2uSEdVJqQMOFMNxln1GBNboBidFLIo5f0jkWT0L8hYXlo2wnQE4QiTSJxKu1UGY17QifYvgMdz/ebwAFoJpVsVddZbLoXtgZ3sY='
     #     for mineral in mineralnames_list:
     #         urlstr = f'https://www.mindat.org/search.php?search={mineralnames_list[1]}'
-    #         page = requests.get(urlstr)
+    #         page = s.get(urlstr)
     #         soup = BeautifulSoup(page.content, 'html.parser')
     #         print(soup.body)
     #         introdata = soup.find(id='textContent')
