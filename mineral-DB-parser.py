@@ -102,13 +102,9 @@ def importMinerals():
         plainformula_columnindex = headers.index('IMA Chemistry (concise)')
         elements_columnindex = headers.index('Chemistry Elements')
 
-        
-        global mineralnames_list
         mineralnames_list = []
         mineralformulas_list = []
         mineralelements_list = []
-
-
 
         for row in f:
 
@@ -574,22 +570,6 @@ def main():
     # xerox.copy(formulas[1])
 
     importMinerals()
-
-    ####
-    with open('names.txt', 'a') as f:
-        for mineral in mineralnames_list:
-            urlstr = f'https://www.mindat.org/search.php?search={mineral}'
-            page = requests.get(urlstr)
-            soup = BeautifulSoup(page.content, 'html.parser')
-            introdata = soup.find(id='textContent')
-            print(introdata)
-
-    
-
-
-
-    ####
-
 
     mineralTableStatus.set(f'Minerals: {mineralCount}/{mineralCount} ')
     mineralTableFrames[0].configure(text = mineralTableStatus.get())
