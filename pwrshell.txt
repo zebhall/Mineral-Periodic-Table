@@ -1,3 +1,5 @@
 pyinstaller --onefile --windowed --clean --icon=pss.ico 'mineral-DB-parser.py'
 
 pyinstaller --onefile --windowed --clean --icon=pss.ico mineral-DB-parser.spec
+
+pyinstaller Mineral-PT.spec
