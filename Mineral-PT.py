@@ -1,6 +1,6 @@
 # Mineral Parser Periodic Table by ZH
-versionNum = 'v1.1.1'
-versionDate = '2022/12/19'
+versionNum = 'v1.1.2'
+versionDate = '2023/01/11'
 
 from tkinter import *
 from tkinter.ttk import Treeview
@@ -502,19 +502,19 @@ def main():
         buttonIDs.append(button)
 
     clear_button = Button(ptableFrame, text='CLEAR ALL', width=5, height=2, bg='white', font=consolas10, command=clearElements)
-    clear_button.grid(row=10, column=1, padx=1, pady=1, ipadx=0, ipady=0, columnspan=2, sticky=NSEW)
+    clear_button.grid(row=10, column=1, padx=1, pady=1, ipadx=0, ipady=0, columnspan=3, sticky=NSEW)
 
 
     exclusivemode_select = Button(ptableFrame, textvariable=exclusivemode_text, width=5, height=2, bg='#D42525', fg = 'white', font=consolas10, command=toggleExclusiveMode)
-    exclusivemode_select.grid(row=9, column=1, padx=1, pady=1, ipadx=0, ipady=0, columnspan=2, sticky=NSEW)
+    exclusivemode_select.grid(row=9, column=1, padx=1, pady=1, ipadx=0, ipady=0, columnspan=3, sticky=NSEW)
     exclmodebuttons.append(exclusivemode_select)
 
     # About frame
     aboutFrame = Frame(gui, width = 200, height = 10, pady = 4, padx = 4)
-    aboutFrame.grid(row=3, column=1, columnspan=1, pady = [0,0], padx = 4, sticky= NSEW)
+    aboutFrame.grid(row=3, column=1, columnspan=1, pady = [0,0], padx = 4, sticky= NSEW,ipadx=0,ipady=0)
 
     aboutLabel = Label(aboutFrame, font = consolas08, text = f'MineralPT {versionNum} ({versionDate}) - Created by Zeb Hall', fg = "#545454")
-    aboutLabel.grid(row=1,column=1)
+    aboutLabel.grid(row=1,column=1,padx=0,pady=0,ipadx=0,ipady=0)
 
     # # mineral Frame
     # mineralFrame = LabelFrame(gui, width = 200, height = 10, pady = 5, padx = 5, fg = "#545454", font = consolas10, text = "Mineral")
@@ -534,7 +534,7 @@ def main():
     mineralTableFrames.append(mineralTableFrame)
 
     mineralColumns = ('t_name', 't_formula', 't_elements')
-    mineralTable = Treeview(mineralTableFrame, columns = mineralColumns, height = "20", selectmode = "extended", style = 'mystyle.Treeview', show = 'headings')
+    mineralTable = Treeview(mineralTableFrame, columns = mineralColumns, height = 16, selectmode = "extended", style = 'mystyle.Treeview', show = 'headings')
     tables.append(mineralTable)
     mineralTable.grid(column=1, row=1, padx=0, pady=0, rowspan = 40, columnspan = 20, sticky = NSEW)
 
