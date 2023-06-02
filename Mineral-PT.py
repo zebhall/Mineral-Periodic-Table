@@ -1,11 +1,12 @@
 # Mineral Parser Periodic Table by ZH
-versionNum = 'v1.2.0'
+versionNum = 'v1.2.1'
 versionDate = '2023/06/02'
 
 from tkinter import *
 from tkinter.ttk import Treeview
 from tkinter import ttk
 from tkinter import font as tkFont
+from tkinter import messagebox
 import pandas as pd
 import pyperclip as pclip
 import csv
@@ -434,11 +435,12 @@ def click_MindatName():
     webbrowser.open(urlstr)
 
 def click_HandbookPDFName():
-    mineral_filename_guess = f"{selected_name}.pdf"
+    mineral_filename_guess = f"{selected_name}.pdf".lower()
     handbook_pdf_directory_path_1 = "G:/.shortcut-targets-by-id/1w2nUsja1tidZ-QYTuemO6DzCaclAmIlm/PXRFS/20. uXRF Bruker M4-AMICS/2. Procedures-Manuals-Documents/Minerals Handbook/"
     handbook_pdf_directory_path_2 = "C:/PXRFS/20. uXRF Bruker M4-AMICS/2. Procedures-Manuals-Documents/Minerals Handbook/"
     handbook_pdf_directory_path_3 = f"{os.getcwd()}/Mineral Handbook PDFs/"
-    
+
+    # Try opening first guess for filename
     try:
         os.startfile(f'{handbook_pdf_directory_path_1}{mineral_filename_guess}')
         return
@@ -446,10 +448,18 @@ def click_HandbookPDFName():
         # if this fails, name is probably spelled differently/different case etc. so need to look for similar named files.
         print(f'File: {mineral_filename_guess} was not found in directory: {handbook_pdf_directory_path_1}. Attempting to look for similarly spelled files.')
 
-    # This code will only execute if the os.startfile above failed to execute.
+    # Try opening NOSPACE first guess for filename
+    try:
+        os.startfile(f'{handbook_pdf_directory_path_1}{mineral_filename_guess.replace(" ","")}')
+        return
+    except:
+        # if this fails, name is probably spelled differently/different case etc. so need to look for similar named files.
+        print(f'File: {mineral_filename_guess.replace(" ","")} was not found in directory: {handbook_pdf_directory_path_1}. Attempting to look for similarly spelled files.')
+
+    # This code will only execute if the os.startfile attempts above failed to execute.
 
     # get list of all files in dir.
-    directory_filelist = [f for f in os.listdir(handbook_pdf_directory_path_1) if os.path.isfile(os.path.join(handbook_pdf_directory_path_1, f))]
+    directory_filelist = [f.lower() for f in os.listdir(handbook_pdf_directory_path_1) if os.path.isfile(os.path.join(handbook_pdf_directory_path_1, f))]
     print(f'Found {len(directory_filelist)} files in handbook directory.')
 
     # Get at most the 3 closest matches to filename in dir. first entry should always be most similar.
@@ -461,8 +471,11 @@ def click_HandbookPDFName():
     # Open the most similar file, if one exists.
     if closest_filenames == []:
         print('No similar matches found for file.')
-    else:
-        os.startfile(f'{handbook_pdf_directory_path_1}{closest_filenames[0]}')
+        return
+    for fileoption in closest_filenames:
+        if messagebox.askyesno(title='Similar File Found', message=f'No perfect matches were found for"{mineral_filename_guess}" in the Directory. The closest match found is: \n\n"{fileoption}"\n\nWould you like to open this file now? You will be prompted to open for the next-closest match (max of 3 total) if No is selected.'):
+            os.startfile(f'{handbook_pdf_directory_path_1}{fileoption}')
+            return
 
     
 
