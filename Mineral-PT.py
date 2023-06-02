@@ -1,17 +1,18 @@
 # Mineral Parser Periodic Table by ZH
-versionNum = 'v1.1.2'
-versionDate = '2023/01/11'
+versionNum = 'v1.2.0'
+versionDate = '2023/06/02'
 
 from tkinter import *
 from tkinter.ttk import Treeview
 from tkinter import ttk
 from tkinter import font as tkFont
 import pandas as pd
-import xerox
+import pyperclip as pclip
 import csv
 import os
 import sys
 import webbrowser
+import difflib
 
 
 superrorcount = 0
@@ -416,13 +417,13 @@ def mineralSelected(event):
         selected_formula = 'NULL FORMULA'
         selected_name = 'NULL NAME'
     print(selected_formula)
-    xerox.copy(selected_formula)
+    pclip.copy(selected_formula)
 
 def click_CopyFormula():
-    xerox.copy(selected_formula)
+    pclip.copy(selected_formula)
 
 def click_CopyName():
-    xerox.copy(selected_name)
+    pclip.copy(selected_name)
 
 def click_GoogleName():
     urlstr = f'https://google.com/search?q={selected_name}'
@@ -431,6 +432,41 @@ def click_GoogleName():
 def click_MindatName():
     urlstr = f'https://www.mindat.org/search.php?search={selected_name}'
     webbrowser.open(urlstr)
+
+def click_HandbookPDFName():
+    mineral_filename_guess = f"{selected_name}.pdf"
+    handbook_pdf_directory_path_1 = "G:/.shortcut-targets-by-id/1w2nUsja1tidZ-QYTuemO6DzCaclAmIlm/PXRFS/20. uXRF Bruker M4-AMICS/2. Procedures-Manuals-Documents/Minerals Handbook/"
+    handbook_pdf_directory_path_2 = "C:/PXRFS/20. uXRF Bruker M4-AMICS/2. Procedures-Manuals-Documents/Minerals Handbook/"
+    handbook_pdf_directory_path_3 = f"{os.getcwd()}/Mineral Handbook PDFs/"
+    
+    try:
+        os.startfile(f'{handbook_pdf_directory_path_1}{mineral_filename_guess}')
+        return
+    except:
+        # if this fails, name is probably spelled differently/different case etc. so need to look for similar named files.
+        print(f'File: {mineral_filename_guess} was not found in directory: {handbook_pdf_directory_path_1}. Attempting to look for similarly spelled files.')
+
+    # This code will only execute if the os.startfile above failed to execute.
+
+    # get list of all files in dir.
+    directory_filelist = [f for f in os.listdir(handbook_pdf_directory_path_1) if os.path.isfile(os.path.join(handbook_pdf_directory_path_1, f))]
+    print(f'Found {len(directory_filelist)} files in handbook directory.')
+
+    # Get at most the 3 closest matches to filename in dir. first entry should always be most similar.
+    print('Getting closest matches to filename...')
+    closest_filenames = []
+    closest_filenames = difflib.get_close_matches(word=mineral_filename_guess, possibilities=directory_filelist, n=3, cutoff=0.6)
+    print(f'Closest Filenames to {mineral_filename_guess} found: {closest_filenames}.')
+
+    # Open the most similar file, if one exists.
+    if closest_filenames == []:
+        print('No similar matches found for file.')
+    else:
+        os.startfile(f'{handbook_pdf_directory_path_1}{closest_filenames[0]}')
+
+    
+
+
 
 def toggleExclusiveMode():
     if exclusivemode.get() == True:
@@ -442,10 +478,6 @@ def toggleExclusiveMode():
         exclusivemode_text.set('EXCLUSIVE(Y)')
         exclmodebuttons[0].configure(bg='#33AF56')
     filterMineralTable()
-
-
-
-
 
 
 gui = Tk()
@@ -552,21 +584,25 @@ def main():
 
     mineralTable.bind('<<TreeviewSelect>>', mineralSelected)
 
-    copyName_button = Button(mineralTableFrame, width = 4, text = "Copy Name", font = consolas10, fg = "#FDFEFE", bg = "#506f8c", command=click_CopyName)
+    copyName_button = Button(mineralTableFrame, text = "Copy Name", font = consolas10, fg = "#FDFEFE", bg = "#506f8c", command=click_CopyName)
     copyName_button.grid(column=1, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
 
-    copyFormula_button = Button(mineralTableFrame, width = 8, text = "Copy Formula", font = consolas10, fg = "#FDFEFE", bg = "#506f8c", command=click_CopyFormula)
+    copyFormula_button = Button(mineralTableFrame, text = "Copy Formula", font = consolas10, fg = "#FDFEFE", bg = "#506f8c", command=click_CopyFormula)
     copyFormula_button.grid(column=2, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
 
-    googleName_button = Button(mineralTableFrame, width = 3, text = "MinDat", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=click_MindatName)
-    googleName_button.grid(column=3, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
+    mindatName_button = Button(mineralTableFrame, text = "MinDat", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=click_MindatName)
+    mindatName_button.grid(column=3, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
 
-    googleName_button = Button(mineralTableFrame, width = 3, text = "Google", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=click_GoogleName)
+    googleName_button = Button(mineralTableFrame, text = "Google", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=click_GoogleName)
     googleName_button.grid(column=4, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
+
+    handbookPDFName_button = Button(mineralTableFrame, text = "Mineral Handbook PDF (only works @ PSS Gdrive)", font = consolas10, fg = "#FDFEFE", bg = "#566573", command=click_HandbookPDFName)
+    handbookPDFName_button.grid(column=5, row=42, padx=5, pady=5, ipadx=5, ipady=0, sticky=EW)
+
 
     # formulas = ['PbS','C\u2076\u2082','PbCu']
     # formula = 'C\u2076\u2082'
-    # xerox.copy(formulas[1])
+    # pclip.copy(formulas[1])
 
     importMinerals()
 
