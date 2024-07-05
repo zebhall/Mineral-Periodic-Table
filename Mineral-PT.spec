@@ -1,31 +1,24 @@
 # -*- mode: python ; coding: utf-8 -*-
 
 
-block_cipher = None
-
-
 a = Analysis(
     ['Mineral-PT.py'],
     pathex=[],
     binaries=[],
-    datas=[('minerals.csv','.'),('minpt.ico','.')],
+    datas=[('C:\\Users\\Zeb\\AppData\\Local\\Programs\\Python\\Python312\\Lib\\site-packages\\pyperclip', 'pyperclip/'),("minerals.csv","."),("icons","icons")],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
     noarchive=False,
 )
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure)
 
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
-    a.zipfiles,
     a.datas,
     [],
     name='Mineral-PT',
@@ -41,5 +34,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['minpt.ico'],
+    icon=['icons\\minpt.ico'],
 )
